@@ -1,3 +1,4 @@
 venv
 speakers.db
 **/__pycache__/
+events.db

@@ -72,7 +72,7 @@ class VoiceAuthGUI(tk.Tk):
         if result is None:
             return
 
-        bio, dur = result
+        bio, _ = result
         bio.seek(0)
         files = {"file": ("identify.wav", bio, "audio/wav")}
         try:
@@ -159,7 +159,7 @@ class VoiceAuthGUI(tk.Tk):
         # after dialog closes
         result = getattr(win, "_result", None)
         if result:
-            bio, dur = result
+            _, dur = result
             messagebox.showinfo("Recording Finished",
                                 f"Duration: {dur:.2f} seconds")
         return result
