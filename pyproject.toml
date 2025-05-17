@@ -1,0 +1,29 @@
+[project]
+name = "vista"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Sam Shervin S", email = "samshervin.sebastian@gmail.com"},
+    {name = "Mohammed Faiz Abid", email = "faizabid32@gmail.com"},
+    {name = "Shashwat Mishra", email = "mailid"},
+    {name = "Syed Omar Albeez", email = "mailid"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+
+# Direct dependencies only
+dependencies = [
+    "fastapi==0.115.12",
+    "requests==2.32.3",
+    "sounddevice==0.5.2",
+    "soundfile==0.13.1",
+    "numpy==2.2.5",
+    "torch==2.7.0",
+    "webrtcvad==2.0.10",
+    "speechbrain==1.0.3",
+    "scipy==1.15.3"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
