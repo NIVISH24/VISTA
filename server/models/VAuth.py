@@ -1,9 +1,9 @@
-# sqlite to be replaced by postgres or other db
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 import sqlite3
 import numpy as np
 import torch, torchaudio, webrtcvad
+from torchaudio.transforms import Resample
 from speechbrain.inference.classifiers import EncoderClassifier
 import io
 from scipy.spatial.distance import cosine
@@ -14,18 +14,24 @@ classifier = EncoderClassifier.from_hparams(
     source="speechbrain/spkrec-ecapa-voxceleb",
     savedir="pretrained_models/spkrec-ecapa"
 )
+
 # Database connection
 conn = sqlite3.connect("speakers.db", check_same_thread=False)
 c = conn.cursor()
 c.execute(
     """CREATE TABLE IF NOT EXISTS speakers(
-                    user_id TEXT PRIMARY KEY,
-                    embedding BLOB
-                 )"""
+            user_id TEXT PRIMARY KEY,
+            embedding BLOB
+        )"""
 )
 conn.commit()
 
-# Helpers
+def ensure_16k(wav: torch.Tensor, orig_fs: int) -> torch.Tensor:
+    """Resample to 16 kHz if needed."""
+    if orig_fs != 16000:
+        resampler = Resample(orig_freq=orig_fs, new_freq=16000)
+        wav = resampler(wav)
+    return wav
 
 def extract_speech(wav: np.ndarray, fs: int = 16000, frame_ms: int = 30) -> np.ndarray:
     frames = int(fs * frame_ms / 1000)
@@ -39,13 +45,11 @@ def extract_speech(wav: np.ndarray, fs: int = 16000, frame_ms: int = 30) -> np.n
             speech.extend(frame)
     return np.array(speech)
 
-
 def get_embedding(wav_np: np.ndarray) -> np.ndarray:
     signal = torch.from_numpy(wav_np).unsqueeze(0)
     emb = classifier.encode_batch(signal)
     return emb.squeeze().cpu().numpy()
 
-# FastAPI app
 def create_app():
     app = FastAPI()
 
@@ -56,18 +60,16 @@ def create_app():
         file2: UploadFile = File(...),
         file3: UploadFile = File(...)
     ):
-        # Read and process three recordings
         embs = []
         for f in (file1, file2, file3):
             data = await f.read()
-            wav, fs = torchaudio.load(io.BytesIO(data))
-            wav_np = wav.mean(0).numpy()
-            speech = extract_speech(wav_np, fs)
-            emb = get_embedding(speech)
-            embs.append(emb)
-        # Average embeddings
+            wav, fs = torchaudio.load(io.BytesIO(data))         # wav: [channels, time]
+            mono = wav.mean(dim=0, keepdim=True)                # convert to mono
+            wav16k = ensure_16k(mono, fs)                       # resample if needed
+            wav_np = wav16k.squeeze(0).numpy()
+            speech = extract_speech(wav_np, 16000)
+            embs.append(get_embedding(speech))
         avg_emb = np.mean(np.stack(embs), axis=0).astype(np.float32)
-        # Store
         c.execute("REPLACE INTO speakers VALUES (?,?)", (user_id, avg_emb.tobytes()))
         conn.commit()
         return JSONResponse({"status": "enrolled", "user_id": user_id})
@@ -76,8 +78,10 @@ def create_app():
     async def identify(file: UploadFile = File(...), threshold: float = Form(0.40)):
         data = await file.read()
         wav, fs = torchaudio.load(io.BytesIO(data))
-        wav_np = wav.mean(0).numpy()
-        speech = extract_speech(wav_np, fs)
+        mono = wav.mean(dim=0, keepdim=True)
+        wav16k = ensure_16k(mono, fs)
+        wav_np = wav16k.squeeze(0).numpy()
+        speech = extract_speech(wav_np, 16000)
         probe = get_embedding(speech)
 
         best_score, best_id = -1.0, None
@@ -87,7 +91,6 @@ def create_app():
             if score > best_score:
                 best_score, best_id = score, user_id
 
-        # cast np.float32 → float so JSON can serialize it
         best_score = float(best_score)
         if best_score >= threshold:
             return JSONResponse({"result": "known", "user_id": best_id, "score": best_score})
