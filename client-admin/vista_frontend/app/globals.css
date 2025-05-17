@@ -3,13 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-geist-sans: 'Geist', sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,7 +16,32 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+@font-face {
+  font-family: "PowerGrotesk";
+  src: url("/fonts/PowerGrotesk-UltraBold.ttf") format("truetype");
+  font-weight: 900;
+}
+
+@font-face {
+  font-family: "PowerGrotesk";
+  src: url("/fonts/PowerGrotesk-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+
+.font-pg {
+  font-family: "PowerGrotesk", Arial, sans-serif;
+}
+
+/* Custom slanted sections */
+.clip-slant {
+  clip-path: polygon(10% 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+.clip-slant-left {
+  clip-path: polygon(0 0, 90% 0, 80% 100%, 0% 100%);
 }
