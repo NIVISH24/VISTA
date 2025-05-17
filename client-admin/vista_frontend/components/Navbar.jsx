@@ -18,23 +18,28 @@ export default function Navbar() {
   };
 
   const isDashboard = pathname === "/dashboard";
-  const isHome = pathname === "/";
+const isHome = pathname === "/";
 
-  const headerClass = isDashboard
-    ? "w-full fixed top-0 z-50 bg-[#adabab16] backdrop-blur-md text-white shadow-md"
-    : isHome
-    ? "w-full fixed top-0 z-50 bg-[#4B5320] text-white shadow-md"
-    : "w-full fixed top-0 z-50 bg-black text-white shadow-md"; // fallback if needed
+const headerClass = isDashboard
+  ? "w-full fixed top-0 z-50 bg-[#adabab16] backdrop-blur-md text-white shadow-md"
+  : isHome
+  ? "w-full fixed top-0 z-50 bg-[#4B5320] text-white shadow-md"
+  : "w-full fixed top-0 z-50 bg-black text-white shadow-md";
+
+const logoClass = `text-2xl font-extrabold tracking-widest cursor-pointer ${
+  isDashboard ? "text-green-400" : "text-[#FF5E5B]"
+}`;
 
   return (
     <header className={headerClass}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
-        {/* Logo */}
-        <Link href="/">
-          <div className="text-2xl font-extrabold tracking-widest text-[#FF5E5B] cursor-pointer">
-            VISTA
-          </div>
-        </Link>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
+    {/* Logo */}
+    <Link href="/">
+      <div className={logoClass}>
+        VISTA
+      </div>
+    </Link>
+
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-8 text-sm font-medium">
@@ -47,7 +52,7 @@ export default function Navbar() {
           <button onClick={() => handleScroll("services")} className="hover:text-khaki">
             Services
           </button>
-          <Link href="/dashboard" passHref>
+          <Link href="/dashboard" >
     <button className="text-right">Dashboard</button>
   </Link>
           <button onClick={() => handleScroll("footer")} className="hover:text-khaki">
@@ -81,7 +86,7 @@ export default function Navbar() {
   <button onClick={() => handleScroll("hero")}>Home</button>
   <button onClick={() => handleScroll("about")}>About</button>
   <button onClick={() => handleScroll("services")}>Services</button>
-  <a className="text-center" href="/dashboard" passHref>
+  <a className="text-center" href="/dashboard">
     <button className="text-right">Dashboard</button>
   </a>
   <button onClick={() => handleScroll("footer")}>Contact</button>

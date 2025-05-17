@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ChevronDown, ChevronUp, CheckCircle, XCircle, Usb } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  XCircle,
+  Usb,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import * as THREE from "three";
-import NET from "vanta/dist/vanta.net.min";
 
 // Utility for icons
 const getStatusIcon = (status) =>
@@ -22,30 +26,50 @@ export default function DashboardPage() {
   const [openIndex, setOpenIndex] = useState(null);
   const [viewMode, setViewMode] = useState("system");
 
-  const vantaRef = useRef(null);
-  const vantaEffect = useRef(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    if (!vantaEffect.current) {
-      vantaEffect.current = NET({
-        el: vantaRef.current,
-        THREE,
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
-        minHeight: 200.0,
-        minWidth: 200.0,
-        scale: 1.0,
-        scaleMobile: 1.0,
-        color: 0xff5e5b,
-        backgroundColor: 0x1a1a1a,
-        points: 10.0,
-        maxDistance: 22.0,
-        spacing: 20.0,
-      });
-    }
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const fontSize = 16;
+    const columns = Math.floor(width / fontSize);
+    const drops = new Array(columns).fill(1);
+    const characters = "アァイィウヴエェオカサタナハマヤユラワ0123456789".split("");
+
+    const draw = () => {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = "#00FF41";
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = characters[Math.floor(Math.random() * characters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    };
+
+    const interval = setInterval(draw, 33);
+
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
     return () => {
-      if (vantaEffect.current) vantaEffect.current.destroy();
+      clearInterval(interval);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -96,19 +120,19 @@ export default function DashboardPage() {
     <>
       <Navbar />
       <div className="relative">
-  {/* Background animation */}
-  <div
-    ref={vantaRef}
-    className="fixed top-0 left-0 w-full h-full"
-    style={{ zIndex: -1 }}
-  />
+        <canvas
+          ref={canvasRef}
+          className="fixed top-0 left-0 w-full h-full"
+          style={{ zIndex: -1 }}
+        />
+
         <motion.main
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="relative z-10 min-h-screen text-white px-4 py-20 md:px-16 lg:px-32 font-geist"
         >
-          <h1 className="text-4xl md:text-5xl mt-6 font-extrabold mb-12 text-[#FF5E5B] text-center font-pg drop-shadow-md backdrop-blur-sm bg-[#ffffff0a] px-4 py-2 rounded-xl border border-[#FF5E5B]/30">
+          <h1 className="text-4xl md:text-5xl mt-6 font-extrabold mb-12 text-[#00FF41] text-center font-pg drop-shadow-md backdrop-blur-sm bg-[#ffffff0a] px-4 py-2 rounded-xl border border-[#00ff4190]">
             Behavioral Biometrics Dashboard
           </h1>
 
@@ -121,7 +145,7 @@ export default function DashboardPage() {
               return (
                 <div
                   key={idx}
-                  className="rounded-xl overflow-hidden border border-[#3b3b3b] shadow-lg bg-[#2C2C2C] hover:bg-[#333] transition"
+                  className="rounded-xl overflow-hidden border border-[#3b3b3b] shadow-lg bg-[#1a1a1a] hover:bg-[#222] transition"
                 >
                   <button
                     onClick={() => toggleAccordion(idx)}
@@ -172,12 +196,12 @@ export default function DashboardPage() {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.4 }}
-                        className="bg-[#1f1f1f] px-6 py-4 border-t border-[#333]"
+                        className="bg-[#0f0f0f] px-6 py-4 border-t border-[#333]"
                       >
                         <div className="flex justify-end mb-4">
                           <button
                             onClick={toggleViewMode}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#FF5E5B] text-white rounded hover:bg-[#e14e4b] transition"
+                            className="flex items-center gap-2 px-4 py-2 bg-[#00FF41] text-black rounded hover:bg-[#0dfb2c] transition"
                           >
                             <Usb className="w-4 h-4" />
                             {viewMode === "system" ? "View USB Events" : "View System Info"}
@@ -198,7 +222,7 @@ export default function DashboardPage() {
                         ) : userUsbEvents.length > 0 ? (
                           <div className="overflow-x-auto">
                             <table className="min-w-full text-sm text-left text-gray-300 font-mono">
-                              <thead className="bg-[#2C2C2C] text-gray-400">
+                              <thead className="bg-[#1c1c1c] text-green-500">
                                 <tr>
                                   <th className="px-4 py-2">Time</th>
                                   <th className="px-4 py-2">Action</th>
