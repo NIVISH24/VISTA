@@ -109,8 +109,8 @@ export default function DashboardPage() {
                 ...info,
                 name: info.hostname,
                 voice: false,
-                driftScore: 82,
-                validated: true,
+                driftScore: 51,
+                validated: false,
                 threat: "Above", // ❌ Voice fails
               };
             } else if (idx === 3) {
