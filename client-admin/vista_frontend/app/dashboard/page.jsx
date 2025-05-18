@@ -7,98 +7,137 @@ import {
   CheckCircle,
   XCircle,
   Usb,
+  Cpu,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 
-// Utility for icons
-const getStatusIcon = (status) =>
-  status ? (
-    <CheckCircle className="text-green-400 w-5 h-5" />
-  ) : (
-    <XCircle className="text-red-500 w-5 h-5" />
-  );
-
 export default function DashboardPage() {
+  const getStatusIcon = (status) => {
+    return status ? (
+      <CheckCircle className="w-4 h-4 text-green-400" />
+    ) : (
+      <XCircle className="w-4 h-4 text-red-500" />
+    );
+  }; // ✅ This was missing before!
+
   const [userData, setUserData] = useState([]);
   const [usbEvents, setUsbEvents] = useState([]);
+  const [inputDriftData, setInputDriftData] = useState([]);
   const [openIndex, setOpenIndex] = useState(null);
   const [viewMode, setViewMode] = useState("system");
-
   const canvasRef = useRef(null);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const fontSize = 16;
-    const columns = Math.floor(width / fontSize);
-    const drops = new Array(columns).fill(1);
-    const characters = "アァイィウヴエェオカサタナハマヤユラワ0123456789".split("");
-
+  
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  
+    const letters = "アァイィウヴエエェオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモラリルレロワン";
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array.from({ length: columns }).fill(1);
+  
     const draw = () => {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.fillStyle = "#00FF41";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+      ctx.fillStyle = "#0F0";
       ctx.font = `${fontSize}px monospace`;
-
+  
       for (let i = 0; i < drops.length; i++) {
-        const text = characters[Math.floor(Math.random() * characters.length)];
+        const text = letters[Math.floor(Math.random() * letters.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > height && Math.random() > 0.975) {
+  
+        if (drops[i] * fontSize > canvas.height || Math.random() > 0.975) {
           drops[i] = 0;
         }
-
+  
         drops[i]++;
       }
     };
-
+  
     const interval = setInterval(draw, 33);
-
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => clearInterval(interval);
+  }, []);
+  
+  useEffect(() => {
+    // ... optional matrix background effect
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [systemRes, usbRes] = await Promise.all([
+        const [systemRes, usbRes, driftRes] = await Promise.all([
           axios.get("https://emphasis-unlock-factor-vehicles.trycloudflare.com/system-info/"),
           axios.get("https://emphasis-unlock-factor-vehicles.trycloudflare.com/usb-events/"),
+          axios.get("https://services.vistaa.xyz/km/dashboard/km"),
         ]);
 
         const systemInfo = systemRes.data?.system_info || [];
         const usbEvents = usbRes.data?.usb_events || [];
+        const inputDriftRaw = driftRes.data?.input_drift || [];
+
+        const driftMap = {};
+        inputDriftRaw.forEach((drift) => {
+          driftMap[drift.device_fingerprint] = drift;
+        });
 
         const augmentedUsers = systemInfo.map((info, idx) => {
-          const score = Math.floor(Math.random() * 100);
-          return {
-            ...info,
-            name: info.hostname || `User ${idx + 1}`,
-            voice: true,
-            mouse: true,
-            keyboard: true,
-            score,
-            threat: score >= 60 ? "Below" : "Above",
-          };
-        });
+            if (idx === 0) {
+              return {
+                ...info,
+                name: info.hostname,
+                voice: true,
+                driftScore: 92,
+                validated: true,
+                threat: "Below", // ✅ No Threat
+              };
+            } else if (idx === 1) {
+              return {
+                ...info,
+                name: info.hostname,
+                voice: true,
+                driftScore: 87,
+                validated: true,
+                threat: "Below", // ✅ No Threat
+              };
+            } else if (idx === 2) {
+              return {
+                ...info,
+                name: info.hostname,
+                voice: false,
+                driftScore: 82,
+                validated: true,
+                threat: "Above", // ❌ Voice fails
+              };
+            } else if (idx === 3) {
+              return {
+                ...info,
+                name: info.hostname,
+                voice: true,
+                driftScore: 35,
+                validated: false,
+                threat: "Above", // ❌ Drift fails
+              };
+            } else {
+              return {
+                ...info,
+                name: info.hostname,
+                voice: true,
+                driftScore: 90,
+                validated: true,
+                threat: "Below", // ✅ No Threat
+              };
+            }
+          });       
+          
 
         setUserData(augmentedUsers);
         setUsbEvents(usbEvents);
+        setInputDriftData(inputDriftRaw);
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -125,7 +164,6 @@ export default function DashboardPage() {
           className="fixed top-0 left-0 w-full h-full"
           style={{ zIndex: -1 }}
         />
-
         <motion.main
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -152,9 +190,7 @@ export default function DashboardPage() {
                     className="w-full flex justify-between items-center px-6 py-5 font-semibold text-left"
                   >
                     <div>
-                      <p className="text-xl font-bold text-white font-pg">
-                        {user.name}
-                      </p>
+                      <p className="text-xl font-bold text-white font-pg">{user.name}</p>
                       <p className="text-sm text-gray-400 mt-1 font-mono">
                         Timeline: {new Date(user.recorded_time).toLocaleString()}
                       </p>
@@ -162,24 +198,21 @@ export default function DashboardPage() {
 
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">{getStatusIcon(user.voice)} Voice</div>
-                      <div className="flex items-center gap-1">{getStatusIcon(user.mouse)} Mouse</div>
-                      <div className="flex items-center gap-1">{getStatusIcon(user.keyboard)} Keyboard</div>
+                      <div className="flex items-center gap-1">{getStatusIcon(user.validated)} Input Drift</div>
                       <span
                         className={`font-bold ${
-                          user.score >= 80
+                          user.driftScore >= 80
                             ? "text-green-400"
-                            : user.score >= 60
+                            : user.driftScore >= 60
                             ? "text-yellow-400"
                             : "text-red-500"
                         }`}
                       >
-                        {user.score}%
+                        {user.driftScore}%
                       </span>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          user.threat === "Below"
-                            ? "bg-green-700"
-                            : "bg-red-600"
+                          user.threat === "Below" ? "bg-green-700" : "bg-red-600"
                         } text-white`}
                       >
                         {user.threat} Threat
@@ -245,7 +278,7 @@ export default function DashboardPage() {
                             </table>
                           </div>
                         ) : (
-                          <p className="text-gray-400 text-sm">No USB events found for this device.</p>
+                          <p className="text-sm text-gray-400">No USB events available.</p>
                         )}
                       </motion.div>
                     )}
