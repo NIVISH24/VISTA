@@ -1,115 +1,115 @@
 # VISTA: Voice & Insider Surveillance for Threat Assessment
 
-**Version**: 1.0.0
+**Version**: 1.0.0  
 **License**: MIT
 
 ---
 
 ## 📝 Overview
 
-VISTA is a next-generation endpoint monitoring and authentication platform designed for passive surveillance and real-time behavioral analysis to detect insider threats. By combining biometric voice authentication, behavioral profiling, and hardware event monitoring, VISTA provides security teams with proactive alerts, forensic insights, and seamless multi-factor authentication on Linux systems.
+VISTA is a cutting-edge endpoint monitoring and authentication platform specialized in passive surveillance and real-time behavioral analytics to detect insider threats proactively. By leveraging voice biometrics, keystroke dynamics, hardware event monitoring, and AI-powered video analytics, VISTA delivers a robust multi-layered security solution with seamless integration into Linux-based systems.
 
 ---
 
 ## 🚀 Key Features
 
-### 1. Endpoint Agent
+### 1. Multi-Layered Endpoint Agent
 
-* **Lightweight Installation**: Rust-based binary (\~30MB) or Python agent via PyInstaller.
-* **System Fingerprinting**: Collects MAC address, CPU ID, disk serials, RAM serials, OS & patch level.
-* **Hardware Event Logger**: Tracks USB insertions, new NIC attachments, RAM/SSD swaps, with timestamps.
-* **Voice & Behavior Streamer**:
+* **Lightweight Installation**: Installable via PyInstaller (Python) or Rust-based binary.  
+* **System Fingerprinting**: Gathers MAC address, CPU ID, disk and RAM serials, OS version.  
+* **Hardware Event Logger**: Detects USB insertion, NIC changes, hardware swaps, with timestamps.  
+* **Mic Listener (Voice Biometrics)**:  
+  * Captures 15s audio snippets.  
+  * Extracts voice embeddings using Wav2Vec2.  
+  * No raw audio stored—ensures privacy.  
+* **Keystroke Dynamics**: Tracks timing, intervals, and pressure patterns.  
+* **Mouse & App Monitoring**: X/Y tracking, click patterns, app launches, active windows.  
+* **Offline Buffering**: Auto-sync on network reconnection.  
+* **Security-First Encryption**: AES-256, agent self-checks, tamper detection.  
 
-  * **Mic Listener**: Captures 15-second audio windows; extracts embeddings (no raw audio stored).
-  * **Keystroke Dynamics**: Records key‑down/up durations, inter‑key intervals.
-  * **Mouse Analytics**: Logs X/Y movements, velocity, click timing.
-  * **Application Usage**: Monitors app launches, active window focus, login/logout times.
-* **Offline Buffering**: Caches all captured data locally when offline; auto-syncs on network restoration.
-* **Encryption & Integrity**: AES-256 wrapped data, agent self-integrity check, tamper alerts.
+### 2. Voice + Password Multi-Factor Authentication (Linux PAM)
 
-### 2. Voice & Password MFA Integration
+* **Seamless PAM Integration**: CLI-based voice enrollment & challenge-response.  
+* **Real-Time Speaker Verification**: Random phrase validation with Wav2Vec2.  
+* **Fallback & Policy Control**: Password-only mode after configurable failure count.  
 
-* **PAM Module for Linux**: Seamless plug‑in using libpam.
-* **Enrollment CLI**: Record voice samples; generate user voice profile.
-* **Authentication Flow**:
+### 3. Threat Detection & AI Engine
 
-  1. Password prompt
-  2. Voice challenge (random phrase)
-  3. Real‑time speaker verification
-* **Failover**: Falls back to password-only after threshold failures; configurable policies.
+* **Anomaly Detection**: Isolation Forest on behavioral time-series.  
+* **Dynamic Risk Scoring**: Real-time composite risk score (0–100) based on:  
+  * Voice confidence  
+  * Keystroke anomaly  
+  * Hardware activity  
+  * Device context  
+* **Prototype Matching**: FAISS-backed quick similarity search.  
+* **Per-User Thresholds**: Continuously updated using EMA.  
 
-### 3. Threat Detection & ML Engine
+### 4. Security & Surveillance Dashboard
 
-* **Anomaly Detection**: Isolation Forest on time-series behavior data.
-* **Voice Stress Classifier**: Wav2Vec2 embeddings + XGBoost for stress/hesitation cues.
-* **Risk Scoring**: Weighted fusion of hardware, behavior, and voice models into a 0–100 score.
-* **Prototype Authentication**: Rapid nearest‑neighbor search via FAISS index on user prototypes.
-* **Dynamic Thresholding**: Per-user & global thresholds, EMA-based prototype updates.
+* **System Overview**: Health status, active sessions, alerts.  
+* **Live Feed**: Suspicious events like USB inserts or failed voice attempts.  
+* **Forensic Timeline**: Chronological event explorer with detailed plots and voice vectors.  
 
-### 4. Security Dashboard
+### 5. Visual Intrusion Detection (AI-Powered)
 
-* **Overview Panel**: Active agents, health status, last check‑in, suspicion scores.
-* **Heatmap View**: Org‑wide risk distribution by department & location.
-* **Live Alerts Feed**: USB events, failed voice auth, high-risk behavior spikes.
-* **Forensics Explorer**: Timeline view of events, raw feature plots, and audio embeddings.
-* **Reporting**: Scheduled PDF/CSV exports with compliance-ready audit trails.
-* **RBAC & SSO**: LDAP/Active Directory integration, JWT-based API auth.
+* **Camera Integration**: Monitors facial presence and motion anomalies.  
+* **Intrusion Detection**: Alerts on unauthorized personnel.  
+* **Visual Forensics**: Logs video metadata with behavioral data for cross-correlation.  
 
-### 5. Deployment Modes
+### 6. Seamless Deployment
 
-* **On‑Premise**: Docker Compose & Helm charts available.
-* **Hybrid**: Local data ingestion + optional cloud analytics module.
-* **Air‑Gapped**: Model updates via signed USB packages.
+* **Cloudflare-Enabled**: Secure, fast backend routing.  
+* **Custom Domain**: Deployed on production-ready infrastructure.  
 
 ---
 
-## 🔧 Installation
+## 🧠 Our Capabilities
+
+- **Insider Threat Protection**: Real-time behavior and event correlation.  
+- **Voice-Based Authentication**: Privacy-preserving, spoof-resistant biometrics.  
+- **Hardware Event Monitoring**: Deep audit trail of device-level activity.  
+- **Camera-Based Surveillance**: AI-enhanced physical access monitoring.  
+- **End-to-End Forensics**: Unified view for digital + physical investigations.  
+
+---
+
+## 🌐 Installation
 
 ```bash
-# Clone repo
+# Clone the repository
 git clone https://github.com/your-org/vista.git
 cd vista
 
-# Install server components
+# Install the backend
 cd server && ./install.sh
-
-# Deploy agents via Ansible / SCCM
-ansible-playbook -i inventory deploy-agents.yml
 ```
 
 ---
 
-## 🔗 Integration
+## 🔗 Linux PAM Integration
 
-* **PAM Config**: Add `pam_vista.so` to `/etc/pam.d/sshd` and `/etc/pam.d/login`.
-* **API Endpoint**: `https://<your-server>/api/v1`
-* **MQTT Broker**: `mqtts://<broker-host>`
-* **TLS Certs**: Place cert & key in `server/certs/`
+* **Update PAM Config**: Add `pam_vista.so` to `/etc/pam.d/sshd` or `/etc/pam.d/login`  
+* **API Endpoint**: `https://<your-domain>/api/v1`  
 
 ---
 
-## 📈 Performance & Sizing
-
-* **Agent Footprint**: \~30MB RAM, \~5% CPU during voice capture.
-* **Server**: Scales to 10k agents with Redis cluster & PostgreSQL replica set.
-
----
-
-## 📚 Documentation
-
-Detailed guides, API docs, and ML model specs are available in the `/docs` folder.
+## 📸 Visuals
+![hero](https://github.com/user-attachments/assets/51d18b48-19cf-4ac0-927b-3fe62ee04482)
+![dash](https://github.com/user-attachments/assets/d38b2e4c-32fa-4f59-8ac5-dd68b902ae09)
+![dashboard](https://github.com/user-attachments/assets/f4766716-cdf6-41d6-9b08-d61f259edc72)
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repo
-2. Create feature branch
-3. Submit PR against `develop`
-4. Ensure tests pass (`pytest`)
+1. Fork the repository  
+2. Create a feature branch  
+3. Submit a PR to `develop`  
+4. Run tests (`pytest`) before final push  
 
 ---
 
 ## 🛡️ License
+
 
 MIT © 2025 Your Organization
