@@ -38,17 +38,7 @@ VISTA is a next-generation endpoint monitoring and authentication platform desig
   3. Real‑time speaker verification
 * **Failover**: Falls back to password-only after threshold failures; configurable policies.
 
-### 3. Centralized Server & Data Pipeline
-
-* **Ingestion**: gRPC/MQTT streaming collector.
-* **Analytics Queue**: Redis-backed task queue for model inference and anomaly detection.
-* **Storage**:
-
-  * PostgreSQL for metadata & logs
-  * MinIO object store for embeddings & feature dumps
-* **Mutual TLS**: Secure comms between agents and server.
-
-### 4. Threat Detection & ML Engine
+### 3. Threat Detection & ML Engine
 
 * **Anomaly Detection**: Isolation Forest on time-series behavior data.
 * **Voice Stress Classifier**: Wav2Vec2 embeddings + XGBoost for stress/hesitation cues.
@@ -56,7 +46,7 @@ VISTA is a next-generation endpoint monitoring and authentication platform desig
 * **Prototype Authentication**: Rapid nearest‑neighbor search via FAISS index on user prototypes.
 * **Dynamic Thresholding**: Per-user & global thresholds, EMA-based prototype updates.
 
-### 5. Security Dashboard
+### 4. Security Dashboard
 
 * **Overview Panel**: Active agents, health status, last check‑in, suspicion scores.
 * **Heatmap View**: Org‑wide risk distribution by department & location.
@@ -65,7 +55,7 @@ VISTA is a next-generation endpoint monitoring and authentication platform desig
 * **Reporting**: Scheduled PDF/CSV exports with compliance-ready audit trails.
 * **RBAC & SSO**: LDAP/Active Directory integration, JWT-based API auth.
 
-### 6. Deployment Modes
+### 5. Deployment Modes
 
 * **On‑Premise**: Docker Compose & Helm charts available.
 * **Hybrid**: Local data ingestion + optional cloud analytics module.
