@@ -7,6 +7,9 @@ from torchaudio.transforms import Resample
 from speechbrain.inference.classifiers import EncoderClassifier
 import io
 from scipy.spatial.distance import cosine
+from datetime import datetime, timezone
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # Initialize components
 vad = webrtcvad.Vad(1)  # aggressiveness 0–3
@@ -18,10 +21,19 @@ classifier = EncoderClassifier.from_hparams(
 # Database connection
 conn = sqlite3.connect("speakers.db", check_same_thread=False)
 c = conn.cursor()
+# Create tables
 c.execute(
     """CREATE TABLE IF NOT EXISTS speakers(
             user_id TEXT PRIMARY KEY,
             embedding BLOB
+        )"""
+)
+c.execute(
+    """CREATE TABLE IF NOT EXISTS identifications(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            result TEXT NOT NULL,
+            user_id TEXT
         )"""
 )
 conn.commit()
@@ -52,7 +64,13 @@ def get_embedding(wav_np: np.ndarray) -> np.ndarray:
 
 def create_app():
     app = FastAPI()
-
+    app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],  # Allow all origins
+            allow_credentials=True,
+            allow_methods=["*"],  # Allow all HTTP methods
+            allow_headers=["*"],  # Allow all headers
+        )
     @app.post("/enroll")
     async def enroll(
         user_id: str = Form(...),
@@ -91,12 +109,37 @@ def create_app():
             if score > best_score:
                 best_score, best_id = score, user_id
 
-        best_score = float(best_score)
+        result = None
         if best_score >= threshold:
-            return JSONResponse({"result": "known", "user_id": best_id, "score": best_score})
+            result = 'known'
+            response = {"result": "known", "user_id": best_id, "score": float(best_score)}
         else:
-            return JSONResponse({"result": "unknown", "max_score": best_score})
+            result = 'unknown'
+            response = {"result": "unknown", "max_score": float(best_score)}
+
+        # Log identification
+        timestamp = datetime.now(timezone.utc).isoformat()
+        user_rec = best_id if result == 'known' else None
+        c.execute(
+            "INSERT INTO identifications (timestamp, result, user_id) VALUES (?, ?, ?)",
+            (timestamp, result, user_rec)
+        )
+        conn.commit()
+
+        return JSONResponse(response)
+
+    @app.get("/dashboard/voice")
+    async def dashboard_voice():
+        rows = c.execute(
+            "SELECT timestamp, result, COALESCE(user_id, 'unknown') AS user_id FROM identifications ORDER BY id"
+        ).fetchall()
+        data = [ {"timestamp": ts, "result": res, "user_id": uid} for ts, res, uid in rows ]
+        return JSONResponse({"records": data})
 
     return app
 
 app = create_app()
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=3000)

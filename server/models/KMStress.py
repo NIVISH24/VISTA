@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import List, Optional
-
+from fastapi.middleware.cors import CORSMiddleware
 # --- Autoencoder definition ---
 import torch
 
@@ -163,6 +163,13 @@ async def infer_device(device_id, threshold=0.01):
     err = torch.mean((out - seq) ** 2).item()
     return err > threshold, err
 
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins
+        allow_credentials=True,
+        allow_methods=["*"],  # Allow all HTTP methods
+        allow_headers=["*"],  # Allow all headers
+    )
 # --- API endpoints ---
 @app.post("/push_batch")
 async def push_batch(batch: Batch):
@@ -220,6 +227,18 @@ def get_anomalies(
 
     return [{"timestamp": t, "score": s} for t, s in rows]
 
+@app.get("/dashboard/km")
+def get_all_anomaly_data():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.execute("SELECT device_id, timestamp, score FROM anomalies ORDER BY timestamp ASC")
+    rows = cur.fetchall()
+    conn.close()
+
+    return [
+        {"device_id": device_id, "timestamp": timestamp, "score": score}
+        for device_id, timestamp, score in rows
+    ]
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="192.168.79.75", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=3001)

@@ -2,3 +2,8 @@ venv
 speakers.db
 **/__pycache__/
 events.db
+.env
+weights
+ultimate.db
+faces.db
+.DS_Store

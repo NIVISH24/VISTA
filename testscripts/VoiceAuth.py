@@ -6,7 +6,7 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 
-API_URL = "http://localhost:8000"
+API_URL = "https://services.vistaa.xyz/voice"
 TEST_SENTENCES = [
     "The quick brown fox jumps over the lazy dog.",
     "She sells seashells by the seashore.",
