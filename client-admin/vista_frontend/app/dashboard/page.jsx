@@ -20,7 +20,7 @@ export default function DashboardPage() {
     ) : (
       <XCircle className="w-4 h-4 text-red-500" />
     );
-  }; // ✅ This was missing before!
+  };
 
   const [userData, setUserData] = useState([]);
   const [usbEvents, setUsbEvents] = useState([]);
@@ -28,122 +28,216 @@ export default function DashboardPage() {
   const [openIndex, setOpenIndex] = useState(null);
   const [viewMode, setViewMode] = useState("system");
   const canvasRef = useRef(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-  
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-  
+
     const letters = "アァイィウヴエエェオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモラリルレロワン";
     const fontSize = 14;
     const columns = canvas.width / fontSize;
     const drops = Array.from({ length: columns }).fill(1);
-  
+
     const draw = () => {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
+
       ctx.fillStyle = "#0F0";
       ctx.font = `${fontSize}px monospace`;
-  
+
       for (let i = 0; i < drops.length; i++) {
         const text = letters[Math.floor(Math.random() * letters.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-  
+
         if (drops[i] * fontSize > canvas.height || Math.random() > 0.975) {
           drops[i] = 0;
         }
-  
+
         drops[i]++;
       }
     };
-  
+
     const interval = setInterval(draw, 33);
     return () => clearInterval(interval);
   }, []);
-  
-  useEffect(() => {
-    // ... optional matrix background effect
-  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [systemRes, usbRes, driftRes] = await Promise.all([
-          axios.get("https://emphasis-unlock-factor-vehicles.trycloudflare.com/system-info/"),
-          axios.get("https://emphasis-unlock-factor-vehicles.trycloudflare.com/usb-events/"),
-          axios.get("https://services.vistaa.xyz/km/dashboard/km"),
-        ]);
+    // ✅ Commenting out actual data fetching
+    // const fetchData = async () => {
+    //   try {
+    //     const [systemRes, usbRes, driftRes] = await Promise.all([
+    //       axios.get("https://emphasis-unlock-factor-vehicles.trycloudflare.com/system-info/"),
+    //       axios.get("https://emphasis-unlock-factor-vehicles.trycloudflare.com/usb-events/"),
+    //       axios.get("https://services.vistaa.xyz/km/dashboard/km"),
+    //     ]);
 
-        const systemInfo = systemRes.data?.system_info || [];
-        const usbEvents = usbRes.data?.usb_events || [];
-        const inputDriftRaw = driftRes.data?.input_drift || [];
+    //     const systemInfo = systemRes.data?.system_info || [];
+    //     const usbEvents = usbRes.data?.usb_events || [];
+    //     const inputDriftRaw = driftRes.data?.input_drift || [];
 
-        const driftMap = {};
-        inputDriftRaw.forEach((drift) => {
-          driftMap[drift.device_fingerprint] = drift;
-        });
+    //     const driftMap = {};
+    //     inputDriftRaw.forEach((drift) => {
+    //       driftMap[drift.device_fingerprint] = drift;
+    //     });
 
-        const augmentedUsers = systemInfo.map((info, idx) => {
-            if (idx === 0) {
-              return {
-                ...info,
-                name: info.hostname,
-                voice: true,
-                driftScore: 92,
-                validated: true,
-                threat: "Below", // ✅ No Threat
-              };
-            } else if (idx === 1) {
-              return {
-                ...info,
-                name: info.hostname,
-                voice: true,
-                driftScore: 87,
-                validated: true,
-                threat: "Below", // ✅ No Threat
-              };
-            } else if (idx === 2) {
-              return {
-                ...info,
-                name: info.hostname,
-                voice: false,
-                driftScore: 51,
-                validated: false,
-                threat: "Above", // ❌ Voice fails
-              };
-            } else if (idx === 3) {
-              return {
-                ...info,
-                name: info.hostname,
-                voice: true,
-                driftScore: 35,
-                validated: false,
-                threat: "Above", // ❌ Drift fails
-              };
-            } else {
-              return {
-                ...info,
-                name: info.hostname,
-                voice: true,
-                driftScore: 90,
-                validated: true,
-                threat: "Below", // ✅ No Threat
-              };
-            }
-          });       
-          
+    //     const augmentedUsers = systemInfo.map((info, idx) => ({
+    //       ...info,
+    //       name: info.hostname,
+    //       voice: true,
+    //       driftScore: 90,
+    //       validated: true,
+    //       threat: "Below",
+    //     }));
 
-        setUserData(augmentedUsers);
-        setUsbEvents(usbEvents);
-        setInputDriftData(inputDriftRaw);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      }
-    };
+    //     setUserData(augmentedUsers);
+    //     setUsbEvents(usbEvents);
+    //     setInputDriftData(inputDriftRaw);
+    //   } catch (err) {
+    //     console.error("Error fetching data:", err);
+    //   }
+    // };
 
-    fetchData();
+    // fetchData();
+
+    // ✅ Using dummy data instead
+    setUserData([
+      {
+        name: "DESKTOP-123ABC",
+        mac_address: "00:1B:44:11:3A:B7",
+        cpu_info: "Intel Core i7-10700K",
+        disk_info: "Samsung SSD 970 EVO 1TB",
+        memory_info: 17179869184,
+        hostname: "DESKTOP-123ABC",
+        os_info: "Windows 10 Pro",
+        device_fingerprint: "abcd1234",
+        recorded_at: new Date().toISOString(),
+        recorded_time: new Date().toISOString(),
+        voice: true,
+        validated: true,
+        driftScore: 91,
+        threat: "Below",
+      },
+      {
+        name: "LAPTOP-XYZ987",
+        mac_address: "00:1B:44:11:3A:C8",
+        cpu_info: "AMD Ryzen 5 5600H",
+        disk_info: "WD Blue 500GB SSD",
+        memory_info: 8589934592,
+        hostname: "LAPTOP-XYZ987",
+        os_info: "Windows 11 Home",
+        device_fingerprint: "efgh5678",
+        recorded_at: new Date().toISOString(),
+        recorded_time: new Date().toISOString(),
+        voice: false,
+        validated: true,
+        driftScore: 72,
+        threat: "Below",
+      },
+      {
+        name: "WORKSTATION-55GHK",
+        mac_address: "00:1B:44:11:3A:DD",
+        cpu_info: "Intel Xeon E5-2670",
+        disk_info: "Kingston SSD 240GB",
+        memory_info: 34359738368,
+        hostname: "WORKSTATION-55GHK",
+        os_info: "Ubuntu 22.04",
+        device_fingerprint: "ijkl9012",
+        recorded_at: new Date().toISOString(),
+        recorded_time: new Date().toISOString(),
+        voice: true,
+        validated: false,
+        driftScore: 64,
+        threat: "Above",
+      },
+      {
+        name: "LAPTOP-789XYZ",
+        mac_address: "00:1C:42:2E:60:4A",
+        cpu_info: "AMD Ryzen 5 5600X",
+        disk_info: "WD Blue SN550 1TB NVMe",
+        memory_info: 8589934592,
+        hostname: "LAPTOP-789XYZ",
+        os_info: "Windows 11 Home",
+        device_fingerprint: "efgh5678",
+        recorded_at: new Date().toISOString(),
+        recorded_time: new Date().toISOString(),
+        voice: true,
+        validated: true,
+        driftScore: 87,
+        threat: "Below",
+      },
+      {
+        name: "WORKSTATION-456DEF",
+        mac_address: "00:16:3E:7E:44:12",
+        cpu_info: "Intel Xeon E5-2699 v4",
+        disk_info: "Seagate FireCuda 2TB",
+        memory_info: 34359738368,
+        hostname: "WORKSTATION-456DEF",
+        os_info: "Ubuntu 22.04 LTS",
+        device_fingerprint: "ijkl9012",
+        recorded_at: new Date().toISOString(),
+        recorded_time: new Date().toISOString(),
+        voice: true,
+        validated: true,
+        driftScore: 92,
+        threat: "Below",
+      },
+    ]);
+    
+
+    setUsbEvents([
+      {
+        device_fingerprint: "abcd1234",
+        timestamp: new Date().toISOString(),
+        vendor_id: "0x1234",
+        product_id: "0x5678",
+        device_name: "SanDisk USB Drive",
+        serial_number: "SN123456789",
+      },
+      {
+        device_fingerprint: "efgh5678",
+        timestamp: new Date().toISOString(),
+        vendor_id: "0x1111",
+        product_id: "0x2222",
+        device_name: "Kingston DataTraveler",
+        serial_number: "SN987654321",
+      },
+      {
+        device_fingerprint: "ijkl9012",
+        timestamp: new Date().toISOString(),
+        vendor_id: "0x3333",
+        product_id: "0x4444",
+        device_name: "Transcend USB 3.0",
+        serial_number: "SN5566778899",
+      },
+      {
+        device_fingerprint: "abcd123",
+        timestamp: new Date().toISOString(),
+        vendor_id: "0x1234",
+        product_id: "0x5678",
+        device_name: "SanDisk USB Drive",
+        serial_number: "SN123456789",
+      },
+      {
+        device_fingerprint: "efgh567",
+        timestamp: new Date().toISOString(),
+        vendor_id: "0x1111",
+        product_id: "0x2222",
+        device_name: "Kingston DataTraveler",
+        serial_number: "SN987654321",
+      },
+      {
+        device_fingerprint: "ijkl901",
+        timestamp: new Date().toISOString(),
+        vendor_id: "0x3333",
+        product_id: "0x4444",
+        device_name: "Transcend USB 3.0",
+        serial_number: "SN5566778899",
+      },
+    ]);
+    
   }, []);
 
   const toggleAccordion = (index) => {
@@ -203,7 +297,7 @@ export default function DashboardPage() {
                         className={`font-bold ${
                           user.driftScore >= 80
                             ? "text-green-400"
-                            : user.driftScore >= 60
+                            : user.driftScore >= 65
                             ? "text-yellow-400"
                             : "text-red-500"
                         }`}
@@ -252,33 +346,18 @@ export default function DashboardPage() {
                             <div><strong>Fingerprint:</strong> {user.device_fingerprint}</div>
                             <div><strong>Recorded At:</strong> {new Date(user.recorded_at).toLocaleString()}</div>
                           </div>
-                        ) : userUsbEvents.length > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="min-w-full text-sm text-left text-gray-300 font-mono">
-                              <thead className="bg-[#1c1c1c] text-green-500">
-                                <tr>
-                                  <th className="px-4 py-2">Time</th>
-                                  <th className="px-4 py-2">Action</th>
-                                  <th className="px-4 py-2">Vendor</th>
-                                  <th className="px-4 py-2">Product</th>
-                                  <th className="px-4 py-2">Serial</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {userUsbEvents.map((event) => (
-                                  <tr key={event.id} className="border-t border-[#333]">
-                                    <td className="px-4 py-2">{new Date(event.event_time).toLocaleString()}</td>
-                                    <td className="px-4 py-2 capitalize">{event.action}</td>
-                                    <td className="px-4 py-2">{event.vendor_name}</td>
-                                    <td className="px-4 py-2">{event.product_name}</td>
-                                    <td className="px-4 py-2">{event.serial_number}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
                         ) : (
-                          <p className="text-sm text-gray-400">No USB events available.</p>
+                          <div className="space-y-2 text-sm text-gray-300 font-mono">
+                            {userUsbEvents.map((usb, i) => (
+                              <div key={i} className="border border-[#444] rounded p-3">
+                                <p><strong>Timestamp:</strong> {new Date(usb.timestamp).toLocaleString()}</p>
+                                <p><strong>Device Name:</strong> {usb.device_name}</p>
+                                <p><strong>Vendor ID:</strong> {usb.vendor_id}</p>
+                                <p><strong>Product ID:</strong> {usb.product_id}</p>
+                                <p><strong>Serial:</strong> {usb.serial_number}</p>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </motion.div>
                     )}
