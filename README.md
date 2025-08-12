@@ -63,7 +63,7 @@ VISTA is a cutting-edge endpoint monitoring and authentication platform speciali
 
 ---
 
-## 🧠 Our Capabilities
+## Capabilities
 
 - **Insider Threat Protection**: Real-time behavior and event correlation.  
 - **Voice-Based Authentication**: Privacy-preserving, spoof-resistant biometrics.  
